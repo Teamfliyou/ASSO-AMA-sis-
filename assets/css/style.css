@@ -1,0 +1,205 @@
+/* Fichier : assets/css/style.css - Design Final et Intégral */
+
+:root {
+    --primary-color: #1a73e8; /* Bleu principal (Marque) */
+    --primary-light: #4285f4; 
+    --secondary-bg: #e8eaf6; /* Arrière-plan pour les en-têtes/cartes */
+    --background-color: #f7f9fc; /* Arrière-plan général très clair (Aération) */
+    --text-color: #3c4043; /* Gris foncé pour la lisibilité */
+    --success-color: #34a853; 
+    --error-color: #ea4335;
+    --border-color: #dadce0;
+    --box-shadow-subtle: 0 1px 3px rgba(60, 64, 67, 0.1), 0 1px 2px rgba(60, 64, 67, 0.06);
+}
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+.container {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 40px auto; /* Espacement vertical accru pour l'aération */
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: var(--box-shadow-subtle);
+    transition: box-shadow 0.3s;
+}
+.container:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* --- HEADER MINIMALISTE & CONTEXTUEL --- */
+
+/* Base du Header */
+header {
+    background-color: transparent; 
+    padding: 25px 0; 
+    box-shadow: none; 
+}
+header nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+}
+
+/* LOGO (Point de Retour Accueil) */
+a.logo {
+    transition: opacity 0.3s;
+    text-decoration: none;
+    padding: 0;
+    margin: 0;
+    display: flex; 
+    align-items: center;
+    cursor: pointer;
+}
+a.logo:hover {
+    opacity: 0.85; 
+}
+.header-logo {
+    height: 70px; /* Taille de base du logo */
+    width: 70px;
+    border-radius: 50%;
+    object-fit: cover; 
+    transition: box-shadow 0.3s, transform 0.5s ease-out; 
+}
+
+/* Styles pour cacher les anciens liens du header (car nous utilisons la barre contextuelle) */
+header a:not(.context-btn):not(.logo) {
+    display: none; 
+}
+
+/* --- STYLES SPÉCIFIQUES HOME PAGE (Effet Bulle 3D & Rotation) --- */
+
+.home-page .header-logo {
+    /* Style Bulle 3D appliqué seulement sur la home page */
+    background: var(--background-color); 
+    border: 3px solid white; 
+    box-shadow: 
+        5px 5px 15px rgba(0, 0, 0, 0.1),  
+        -5px -5px 15px rgba(255, 255, 255, 0.7),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+        inset -2px -2px 5px rgba(0, 0, 0, 0.1);
+}
+.home-page a.logo:active .header-logo {
+    transform: rotate(360deg); /* Rotation 360° au clic */
+    transition: transform 0.5s ease-out;
+    /* Ajustement de l'ombre au clic pour le rendu enfoncé */
+    box-shadow: 
+        0 2px 5px rgba(0, 0, 0, 0.2), 
+        inset 0 0 0 3px rgba(255, 255, 255, 0.5),
+        inset 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+
+/* --- STYLES PAGES INTERNES (Sticky Navigation Contextuelle) --- */
+
+.sub-page header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: white; 
+    border-bottom: 1px solid var(--secondary-bg);
+    padding: 10px 0; /* Compact */
+    box-shadow: var(--box-shadow-subtle);
+}
+.sub-page .header-logo {
+    height: 40px; /* Logo réduit sur les pages internes */
+    width: 40px;
+    transform: none !important;
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+.sub-page a.logo:active .header-logo {
+    transform: none; 
+}
+
+
+/* --- NAVIGATION CONTEXTUELLE (Boutons de retour) --- */
+.context-nav-links {
+    display: flex;
+    align-items: center;
+    margin-left: auto; /* Pousse la barre à droite */
+    background-color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    box-shadow: var(--box-shadow-subtle);
+}
+
+.context-btn {
+    text-decoration: none;
+    color: var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+.context-btn:hover {
+    background-color: var(--secondary-bg);
+}
+.back-btn {
+    border-right: 1px solid var(--border-color); /* Séparateur */
+    margin-right: 10px;
+    padding-right: 15px;
+}
+.home-btn {
+    color: var(--success-color);
+}
+.logout-btn-minimal {
+    margin-left: 20px;
+    background-color: var(--error-color);
+    color: white !important;
+    padding: 8px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.logout-btn-minimal:hover {
+     opacity: 0.9;
+     background-color: var(--error-color);
+}
+
+
+/* --- TYPOGRAPHIE ET AUTRES ÉLÉMENTS (CONSERVÉS) --- */
+h1, h2 { color: var(--primary-color); font-weight: 300; margin-bottom: 25px; }
+h2 { border-bottom: 1px solid var(--secondary-bg); padding-bottom: 10px; }
+p { margin-bottom: 15px; }
+
+/* MESSAGES D'ALERTE */
+.message { padding: 15px; margin-bottom: 25px; border-left: 5px solid; border-radius: 4px; font-weight: 500; }
+.message.success { border-color: var(--success-color); background-color: #e6f4e6; color: var(--success-color); }
+.message.error { border-color: var(--error-color); background-color: #ffebee; color: var(--error-color); }
+
+/* FORMULAIRES */
+form { padding: 30px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 40px; background-color: white; box-shadow: var(--box-shadow-subtle); }
+input[type="text"], input[type="date"], input[type="file"], select { width: 100%; padding: 10px; margin: 5px 0 20px 0; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; transition: border-color 0.3s, box-shadow 0.3s; }
+input[type="text"]:focus, input[type="date"]:focus, select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2); outline: none; }
+button { background-color: var(--primary-color); color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-size: 1em; transition: background-color 0.3s; }
+button:hover { background-color: #303f9f; }
+button:active { transform: translateY(1px); }
+
+/* TABLEAUX */
+table { width: 100%; border-collapse: collapse; margin-top: 25px; border-radius: 8px; overflow: hidden; box-shadow: var(--box-shadow-subtle); }
+th, td { padding: 14px 15px; text-align: left; border: none; }
+th { background-color: var(--primary-color); color: white; font-weight: 500; text-transform: uppercase; font-size: 0.9em; border-bottom: 3px solid var(--primary-light); }
+tr { border-bottom: 1px solid var(--secondary-bg); }
+tr:nth-child(even) { background-color: #fbfbfc; }
+tr:hover { background-color: #e9efff; transition: background-color 0.2s; cursor: pointer; }
+td:last-child { white-space: nowrap; }
+
+/* GRILLE DE FONCTIONNALITÉS (Accueil) */
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+.feature-card { background-color: rgba(255, 255, 255, 0.9); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(5px); padding: 30px 15px; border-radius: 12px; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); transition: transform 0.3s, box-shadow 0.3s; text-align: center; text-decoration: none; color: var(--text-color); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 180px; cursor: pointer; }
+.feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+.feature-card:active { transform: translateY(-1px) scale(0.98); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); transition: transform 0.1s, box-shadow 0.1s; }
+.icon { font-size: 55px; color: var(--primary-color); margin-bottom: 15px; padding: 10px; border-radius: 8px; background-color: var(--secondary-bg); }
+.card-title { font-size: 1.4em; font-weight: 700; }

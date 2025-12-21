@@ -1,0 +1,6 @@
+RewriteEngine On
+
+
+
+# Redirection pour /ecole
+Redirect 301 /ecole https://assoma.fr/
