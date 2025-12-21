@@ -54,4 +54,4 @@ security.php : Cœur de la gestion des sessions et des droits d'accès.
 🔒 Sécurité
 Le projet inclut une protection contre les accès non autorisés. Les mots de passe sont hachés en SHA-256 et le système impose un changement de mot de passe lors de la première connexion pour les nouveaux utilisateurs.
 
-Développé par : Teamfliyou pour l'ASSO AMA.
+Développé par : Zayd fliyou pour l'ASSO AMA.
