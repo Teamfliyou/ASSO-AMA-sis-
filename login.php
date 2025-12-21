@@ -5,7 +5,7 @@ session_start();
 
 $message = '';
 $class = '';
-$logo_filename = 'logo_ama.png'; // Remplacez par votre vrai nom de fichier
+$logo_filename = 'logo_ama.png'; // Assurez-vous que ce fichier existe dans assets/images/
 
 // Si l'utilisateur est déjà connecté, le rediriger vers l'accueil
 if (isset($_SESSION['user_id'])) {
@@ -55,8 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $class = 'error';
 }
-
-// Nous utilisons un header/footer minimaliste pour la page de connexion
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -67,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        /* Styles de la page de connexion */
         body { 
-            background-color: var(--background-color); /* Utiliser le fond aéré du site */
+            background-color: var(--background-color); 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             min-height: 100vh;
+            margin: 0;
         }
         .login-box { 
             width: 100%; 
@@ -85,11 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
             border: 1px solid var(--border-color);
         }
-        .login-box h1 { 
-            color: var(--primary-color); 
-            margin-top: 0; 
-            font-weight: 300;
-        }
         .logo-img { 
             height: 70px; 
             width: 70px; 
@@ -99,44 +92,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
             border: 3px solid white; 
         }
-        /* Adapter les champs pour ne pas être 100% de la largeur du .login-box padding inclus */
-        .login-box input[type="text"], .login-box input[type="password"] {
-            width: calc(100% - 20px); 
-            padding: 10px;
+        .login-box input {
+            width: 100%; 
+            padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            margin-bottom: 15px;
-            transition: border-color 0.3s;
+            margin-bottom: 20px;
+            box-sizing: border-box;
         }
         .login-box button {
             background-color: var(--primary-color);
+            color: white;
+            border: none;
             padding: 12px 20px;
             width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
         }
-        /* Réduire la marge du label si nécessaire */
-        .login-box label {
-             margin-top: 10px;
-        }
-        
     </style>
 </head>
 <body>
     <div class="login-box">
         <img src="assets/images/<?php echo $logo_filename; ?>" alt="Logo" class="logo-img">
-        <h1>Connexion au SIS</h1>
+        <h1 style="color: var(--primary-color); font-weight: 300;">Connexion au SIS</h1>
 
-        <?php if (isset($message)): ?>
+        <?php if ($message): ?>
             <div class="message <?php echo $class; ?>"><?php echo htmlspecialchars($message); ?></div>
         <?php endif; ?>
 
-        <form method="POST">
-            <label for="username" style="text-align: left; display: block;">Identifiant :</label>
-            <input type="text" id="username" name="username" required>
+        <form method="POST" action="login.php">
+            <label for="username" style="text-align: left; display: block; margin-bottom: 5px;">Identifiant :</label>
+            <input type="text" id="username" name="username" required autocomplete="username" value="<?php echo htmlspecialchars($username ?? ''); ?>">
 
-            <label for="password" style="text-align: left; display: block;">Mot de passe :</label>
-            <input type="password" id="password" name="password" required>
+            <label for="password" style="text-align: left; display: block; margin-bottom: 5px;">Mot de passe :</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
 
-            <button type="submit" style="margin-top: 10px;">Se Connecter</button>
+            <button type="submit">Se Connecter</button>
         </form>
     </div>
 </body>
