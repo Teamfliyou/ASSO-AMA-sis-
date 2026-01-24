@@ -21,32 +21,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $message = "Matière ajoutée !";
             $class = 'success';
         } catch (PDOException $e) {
-            $message = "Erreur : La matière existe peut-être déjà.";
+            $message = "Erreur : La matière existe déjà ou problème de base de données.";
             $class = 'error';
         }
     }
 }
 
-// --- 2. ACTION : ENREGISTRER LES NOTES ---
+// --- 2. ACTION : ENREGISTRER LES NOTES (CORRIGÉ) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'saisie_notes') {
     $notes_saisies = $_POST['notes'] ?? [];
     $coef = $_POST['coefficient'] ?? 1;
     $desc = trim($_POST['description'] ?? 'Contrôle');
     $nb_ajouts = 0;
 
-    if (!empty($notes_saisies)) {
-        $stmt_insert = $pdo->prepare("INSERT INTO notes (eleve_id, matiere_id, date_note, note, coefficient, description) VALUES (?, ?, ?, ?, ?, ?)");
-        
-        foreach ($notes_saisies as $eleve_id => $valeur) {
-            $valeur = str_replace(',', '.', trim($valeur)); // Remplace la virgule par un point
+    if (!empty($notes_saisies) && $selected_matiere_id) {
+        try {
+            // Début de la transaction pour garantir l'intégrité des données
+            $pdo->beginTransaction();
+
+            // REPLACE INTO remplace la note si eleve_id + matiere_id + date_note est déjà présent
+            $sql = "REPLACE INTO notes (eleve_id, matiere_id, date_note, note, coefficient, description) 
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt_insert = $pdo->prepare($sql);
             
-            if ($valeur !== '' && is_numeric($valeur) && $valeur >= 0 && $valeur <= 20) {
-                $stmt_insert->execute([$eleve_id, $selected_matiere_id, $selected_date, $valeur, $coef, $desc]);
-                $nb_ajouts++;
+            foreach ($notes_saisies as $eleve_id => $valeur) {
+                // Nettoyage de la valeur (remplace virgule par point pour le format SQL DECIMAL)
+                $valeur = str_replace(',', '.', trim($valeur)); 
+                
+                // On n'enregistre que si le champ n'est pas vide et est un nombre valide
+                if ($valeur !== '' && is_numeric($valeur)) {
+                    if ($valeur >= 0 && $valeur <= 20) {
+                        $stmt_insert->execute([$eleve_id, $selected_matiere_id, $selected_date, $valeur, $coef, $desc]);
+                        $nb_ajouts++;
+                    }
+                }
             }
+            
+            $pdo->commit();
+            $message = "Succès : $nb_ajouts notes enregistrées avec succès.";
+            $class = 'success';
+        } catch (Exception $e) {
+            // En cas d'erreur, on annule tout ce qui a été fait dans la boucle
+            $pdo->rollBack();
+            $message = "Erreur lors de l'enregistrement : " . $e->getMessage();
+            $class = 'error';
         }
-        $message = "Succès : $nb_ajouts notes enregistrées pour '$desc'.";
-        $class = 'success';
+    } else {
+        $message = "Erreur : Aucune note saisie ou matière non sélectionnée.";
+        $class = 'error';
     }
 }
 
@@ -64,47 +86,58 @@ if ($selected_classe_id) {
 require 'includes/header.php';
 ?>
 
-<div class="container">
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
     <h1>Gestion des Notes</h1>
 
     <?php if ($message): ?>
-        <div class="message <?php echo $class; ?>" style="padding:15px; margin-bottom:20px; border-radius:5px; background:<?php echo $class=='success'?'#d4edda':'#f8d7da'; ?>;">
-            <?php echo $message; ?>
+        <div class="message" style="padding:15px; margin-bottom:20px; border-radius:5px; border: 1px solid; 
+             background:<?= $class=='success'?'#d4edda':'#f8d7da'; ?>; 
+             color:<?= $class=='success'?'#155724':'#721c24'; ?>;">
+            <?= htmlspecialchars($message) ?>
         </div>
     <?php endif; ?>
 
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+    <div style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 30px;">
         
         <div>
-            <form method="GET" action="saisie_notes.php" style="background:#f4f4f4; padding:15px; border-radius:8px;">
-                <h3>1. Sélection</h3>
-                <label>Classe :</label>
-                <select name="classe_id" required onchange="this.form.submit()">
-                    <option value="">-- Choisir --</option>
+            <form method="GET" action="saisie_notes.php" style="background:#f9f9f9; padding:20px; border-radius:8px; border:1px solid #ddd;">
+                <h3 style="margin-top:0;">1. Configuration</h3>
+                
+                <label style="display:block; margin-bottom:5px;">Classe :</label>
+                <select name="classe_id" required onchange="this.form.submit()" style="width:100%; padding:8px; margin-bottom:15px;">
+                    <option value="">-- Sélectionner la classe --</option>
                     <?php foreach ($classes as $c): ?>
-                        <option value="<?= $c['classe_id'] ?>" <?= $selected_classe_id == $c['classe_id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['nom_classe']) ?></option>
+                        <option value="<?= $c['classe_id'] ?>" <?= $selected_classe_id == $c['classe_id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($c['nom_classe']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
 
-                <label>Matière :</label>
-                <select name="matiere_id" required>
-                    <option value="">-- Choisir --</option>
+                <label style="display:block; margin-bottom:5px;">Matière :</label>
+                <select name="matiere_id" required style="width:100%; padding:8px; margin-bottom:15px;">
+                    <option value="">-- Sélectionner la matière --</option>
                     <?php foreach ($matieres as $m): ?>
-                        <option value="<?= $m['matiere_id'] ?>" <?= $selected_matiere_id == $m['matiere_id'] ? 'selected' : '' ?>><?= htmlspecialchars($m['nom_matiere']) ?></option>
+                        <option value="<?= $m['matiere_id'] ?>" <?= $selected_matiere_id == $m['matiere_id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($m['nom_matiere']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
 
-                <label>Date :</label>
-                <input type="date" name="date_note" value="<?= $selected_date ?>">
+                <label style="display:block; margin-bottom:5px;">Date du contrôle :</label>
+                <input type="date" name="date_note" value="<?= $selected_date ?>" style="width:100%; padding:8px; margin-bottom:15px;">
 
-                <button type="submit" style="margin-top:10px; width:100%;">Afficher la liste</button>
+                <button type="submit" style="width:100%; padding:10px; background:#6c757d; color:white; border:none; cursor:pointer; border-radius:4px;">
+                    Actualiser la liste
+                </button>
             </form>
 
-            <form method="POST" style="margin-top:20px; border: 1px dashed #ccc; padding:10px;">
+            <form method="POST" style="margin-top:20px; border: 1px dashed #bbb; padding:15px; border-radius:8px;">
                 <input type="hidden" name="action" value="ajouter_matiere">
-                <h4>+ Nouvelle Matière</h4>
-                <input type="text" name="nouvelle_matiere" placeholder="Nom..." required>
-                <button type="submit" style="background:#28a745; color:white;">Ajouter</button>
+                <h4 style="margin-top:0;">+ Nouvelle Matière</h4>
+                <input type="text" name="nouvelle_matiere" placeholder="Ex: Mathématiques" required style="width:calc(100% - 20px); padding:8px; margin-bottom:10px;">
+                <button type="submit" style="background:#28a745; color:white; border:none; padding:8px 15px; cursor:pointer; border-radius:4px; width:100%;">
+                    Ajouter
+                </button>
             </form>
         </div>
 
@@ -112,49 +145,62 @@ require 'includes/header.php';
             <?php if ($selected_classe_id && $selected_matiere_id && !empty($eleves_classe)): ?>
                 <form method="POST" action="saisie_notes.php">
                     <input type="hidden" name="action" value="saisie_notes">
-                    <input type="hidden" name="classe_id" value="<?= $selected_classe_id ?>">
-                    <input type="hidden" name="matiere_id" value="<?= $selected_matiere_id ?>">
-                    <input type="hidden" name="date_note" value="<?= $selected_date ?>">
+                    <input type="hidden" name="classe_id" value="<?= htmlspecialchars($selected_classe_id) ?>">
+                    <input type="hidden" name="matiere_id" value="<?= htmlspecialchars($selected_matiere_id) ?>">
+                    <input type="hidden" name="date_note" value="<?= htmlspecialchars($selected_date) ?>">
 
-                    <div style="background:#eef; padding:15px; border-radius:8px; margin-bottom:15px;">
-                        <h3>2. Détails du contrôle</h3>
-                        <label>Coefficient :</label>
-                        <input type="number" name="coefficient" value="1" min="1" step="0.5" style="width:60px;">
-                        
-                        <label>Description :</label>
-                        <input type="text" name="description" placeholder="Ex: Interrogation écrite" required>
+                    <div style="background:#eef4ff; padding:20px; border-radius:8px; margin-bottom:20px; border:1px solid #b8daff;">
+                        <h3 style="margin-top:0;">2. Détails du contrôle</h3>
+                        <div style="display:flex; gap:20px; align-items:center;">
+                            <div>
+                                <label>Coefficient :</label><br>
+                                <input type="number" name="coefficient" value="1" min="0.5" step="0.5" style="width:60px; padding:8px;">
+                            </div>
+                            <div style="flex-grow:1;">
+                                <label>Description :</label><br>
+                                <input type="text" name="description" placeholder="Ex: Devoir Surveillé n°1" required style="width:100%; padding:8px;">
+                            </div>
+                        </div>
                     </div>
 
-                    <table style="width:100%; border-collapse: collapse;">
+                    <table style="width:100%; border-collapse: collapse; background:white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                         <thead>
-                            <tr style="background:#333; color:white;">
-                                <th style="padding:10px; text-align:left;">Élève</th>
-                                <th style="padding:10px; width:100px;">Note / 20</th>
+                            <tr style="background:#343a40; color:white;">
+                                <th style="padding:12px; text-align:left;">Nom & Prénom de l'Élève</th>
+                                <th style="padding:12px; width:120px; text-align:center;">Note / 20</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($eleves_classe as $eleve): ?>
-                                <tr style="border-bottom:1px solid #ddd;">
-                                    <td style="padding:8px;"><?= htmlspecialchars($eleve['nom'] . ' ' . $eleve['prenom']) ?></td>
-                                    <td>
-                                        <input type="number" name="notes[<?= $eleve['eleve_id'] ?>]" 
-                                               step="0.25" min="0" max="20" placeholder="-" 
-                                               style="width:80px; padding:5px; text-align:center;">
+                            <?php foreach ($eleves_classe as $index => $eleve): ?>
+                                <tr style="border-bottom:1px solid #eee; background: <?= $index % 2 == 0 ? '#fff' : '#f9f9f9' ?>;">
+                                    <td style="padding:12px;"><?= htmlspecialchars($eleve['nom'] . ' ' . $eleve['prenom']) ?></td>
+                                    <td style="padding:12px; text-align:center;">
+                                        <input type="text" 
+                                               name="notes[<?= $eleve['eleve_id'] ?>]" 
+                                               pattern="[0-9]*[.,]?[0-9]*" 
+                                               placeholder="--" 
+                                               style="width:70px; padding:8px; text-align:center; border:1px solid #ccc; border-radius:4px;">
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                    <button type="submit" style="margin-top:20px; padding:15px; width:100%; background:#007bff; color:white; font-size:16px;">
-                        ENREGISTRER CETTE SÉRIE DE NOTES
-                    </button>
+
+                    <div style="margin-top:20px; text-align:right;">
+                        <button type="submit" style="padding:15px 40px; background:#007bff; color:white; border:none; border-radius:5px; font-size:18px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            💾 ENREGISTRER TOUTE LA CLASSE
+                        </button>
+                    </div>
                 </form>
             <?php elseif($selected_classe_id): ?>
-                <p>Aucun élève dans cette classe.</p>
+                <div style="text-align:center; padding:40px; background:#fff3cd; border:1px solid #ffeeba; border-radius:8px;">
+                    Cette classe ne contient aucun élève.
+                </div>
             <?php else: ?>
-                <p style="text-align:center; padding:50px; background:#f9f9f9; border:2px dashed #ccc;">
-                    Sélectionnez une classe et une matière à gauche pour commencer la saisie.
-                </p>
+                <div style="text-align:center; padding:60px; background:#f8f9fa; border:2px dashed #ccc; border-radius:8px; color:#666;">
+                    <h3>En attente de sélection</h3>
+                    <p>Veuillez choisir une classe et une matière dans le panneau de gauche pour afficher la liste des élèves.</p>
+                </div>
             <?php endif; ?>
         </div>
     </div>
