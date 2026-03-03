@@ -1,11 +1,9 @@
 <?php
-// Fichier : connection.php
-
-// Configuration de la base de données
-$host = 'localhost';
-$db   = 'ama_sis_db';
-$user = 'ama_user';
-$pass = 'JesuispartievoirMarwalundi'; 
+// Fichier : connection.php modifié pour LWS
+$host = '127.0.0.1'; 
+$db   = 'assoa2754152';
+$user = 'assoa2754152';
+$pass = '4qbarhp4me'; 
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -18,7 +16,6 @@ $options = [
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-     // Si la connexion échoue, on arrête tout et on affiche l'erreur
-     die("<h1>❌ ERREUR DE CONNEXION BASE DE DONNÉES</h1><p>Veuillez vérifier les identifiants ou si la DB 'ama_sis_db' existe. Détails: " . $e->getMessage() . "</p>");
+     die("Erreur de connexion : " . $e->getMessage());
 }
 ?>
