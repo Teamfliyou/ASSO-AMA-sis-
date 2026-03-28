@@ -1,4 +1,7 @@
 <?php
+// Dans security.php
+session_start();
+require 'connection.php';
 // Fichier : security.php (Final avec gestion des permissions pour la navigation)
 require 'connection.php'; // Inclure la connexion DB pour les vérifications
 
