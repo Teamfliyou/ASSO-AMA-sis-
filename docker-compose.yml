@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80" # Ton site sera accessible sur localhost:8080
+    volumes:
+      - .:/var/www/html # Synchronise tes fichiers locaux avec le conteneur (pratique pour développer)
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.11
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_secret
+      MYSQL_DATABASE: ama_sis_db
+      MYSQL_USER: ama_user
+      MYSQL_PASSWORD: ama_password
+    volumes:
+      - db_data:/var/lib/mysql # Permet de ne pas perdre les données quand le conteneur s'arrête
+
+volumes:
+  db_data:
