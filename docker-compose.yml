@@ -4,7 +4,7 @@ services:
   web:
     build: .
     ports:
-      - "8080:80" # Ton site sera accessible sur localhost:8080
+      - "80:80" # Ton site sera accessible sur localhost:8080
     volumes:
       - .:/var/www/html # Synchronise tes fichiers locaux avec le conteneur (pratique pour développer)
     depends_on:
